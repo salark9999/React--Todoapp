@@ -1,0 +1,31 @@
+{
+  "lists": [
+    {
+      "id": "core",
+      "items": [
+        {
+          "id": "_u5e6agrup",
+          "done": false,
+          "text": "Arek"
+        },
+        {
+          "id": "_dnp8nglaw",
+          "done": true,
+          "text": "Arek2"
+        }
+      ],
+      "name": "Core",
+      "limit": 3
+    },
+    {
+      "id": "fta",
+      "items": [
+        {
+          "id": "_u5e6a457grup",
+          "done": false,
+          "text": "Arek nakarm zwierzaki"
+        }
+      ]
+    }
+  ]
+}
