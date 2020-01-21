@@ -1,0 +1,9 @@
+.contact {
+    border: none;
+    text-align: center;
+    background-color: rgb(83, 168, 168);
+    color: rgb(137, 79, 160);
+    font-size: 19px;
+    font-weight: bold;
+    padding: 10px;
+}

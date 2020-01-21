@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
 import TodoList from './components/TodoList/TodoList';
+import AppHeader from './components/AppHeader/AppHeader';
+import Contact from './pages/Contact/Contact';
 import axios from 'axios';
+import { debounce } from 'lodash';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
 
 import './App.css';
 
@@ -37,6 +41,7 @@ class App extends Component {
     const localStorageData = localStorage.getItem('todos');
 
     this.state = defaultState;
+    this.saveDebounced = debounce(this.save, 1000);
   }
 
   componentDidMount() {
@@ -56,21 +61,27 @@ class App extends Component {
         }
       });
 
-      this.setState({ ...state, loading: false });
-    });
+      this.setState({
+        ...state,
+        loading: false
+      })
+    })
+      .catch(() => {
+        this.setState({
+          ...defaultState,
+          loading: false
+        })
+      })
   };
 
   save = (list, stateList) => {
     this.setState({
-        [list]: stateList,
-        loading: true,
-      }, () => {
-        // localStorage.setItem('todos', JSON.stringify(this.state));
-        axios.patch(`${URL}/lists/${list}`, stateList).then(() => {
-          this.setState({ loading: false });
-        });
-      }
-    );
+      loading: true,
+    });
+    // localStorage.setItem('todos', JSON.stringify(this.state));
+    axios.patch(`${URL}/lists/${list}`, stateList).finally(() => {
+      this.setState({ loading: false });
+    });
   };
 
 
@@ -90,7 +101,12 @@ class App extends Component {
 
           stateList.items.push(newItem);
 
-          this.save(list, stateList)
+          this.setState({
+            [list]: stateList,
+          },
+            () => {
+              this.saveDebounced(list, stateList);
+            });
         }
       } else {
         const taskIndex = stateList.items.findIndex((task) => {
@@ -110,8 +126,12 @@ class App extends Component {
             case ACTION_DELETE:
               stateList.items.splice(taskIndex, 1);
           }
-
-          this.save(list, stateList)
+          this.setState({
+            [list]: stateList,
+          },
+            () => {
+              this.saveDebounced(list, stateList);
+            });
         }
       }
     } else {
@@ -121,26 +141,46 @@ class App extends Component {
 
   render() {
     return (
-      <AppContext.Provider value={{
-        handleChange: this.handleChange,
-        hello: 'World'
-      }}>
-        <div className="App" style={{
-          opacity: this.state.loading ? 0.2 : 1,
-          pointerEvents: this.state.loading ? "none" : "all"
+        <AppContext.Provider value={{
+          handleChange: this.handleChange,
+          hello: 'World'
         }}>
-
-          <h1>TODO APP {this.state.loading && <div>LOADING... PLEASE WAIT..</div>}</h1>
-          <TodoList
-            id={'core'}
-            listObj={this.state.core}
-          />
-          <TodoList
-            id={'fta'}
-            listObj={this.state.fta}
-          />
-        </div>
-      </AppContext.Provider>
+          <Router >
+            <AppHeader />
+            <Route path="/" exact component={() => (
+              <div className="App"
+                style={{
+                opacity: this.state.loading ? 0.2 : 1,
+                pointerEvents: this.state.loading ? "none" : "all"
+              }}
+              >
+                <TodoList
+                  id={'core'}
+                  listObj={this.state.core}
+                />
+                <TodoList
+                  id={'fta'}
+                  listObj={this.state.fta}
+                />
+              </div>
+            )}>  
+            </Route>
+            <Route path="/about" exact component={() => (
+              <article className="App">
+                <h2>About this app</h2>
+                <p>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                  Nulla dignissim lectus diam, sit amet suscipit elit lacinia vitae.
+                  Sed rhoncus mattis ipsum at rhoncus.
+                  Donec condimentum, ipsum ac sollicitudin hendrerit,
+                  felis elit ultricies sapien, molestie placerat ligula metus ut tortor.
+                </p>
+              </article>
+            )}> 
+            </Route>
+            <Route  path="/contact" exact component={Contact} />
+          </Router>
+          </AppContext.Provider>
     );
   }
 }
